@@ -13,12 +13,12 @@ Add these environment variables to your Render backend service in the exact form
 |--------------|-------|-------------|----------|
 | **NODE_ENV** | `production` | Environment mode | ✅ Yes |
 | **PORT** | `5000` | Server port | ✅ Yes |
-| **MONGODB_URI** | `mongodb+srv://patelnilay22cse_db_user:DrEoEOsGW1ErFCh4@societymanage.8q0c7bk.mongodb.net/?retryWrites=true&w=majority` | MongoDB connection string | ✅ Yes |
+| **MONGODB_URI** | `mongodb+srv://societymanage:society12@cluster0.qdhnug5.mongodb.net/societymanage?appName=Cluster0` | MongoDB connection string | ✅ Yes |
 | **JWT_SECRET** | `SocietyManagement_JWT_Secret_2024_Secure_Key_78492` | Secret key for JWT tokens | ✅ Yes |
 | **JWT_EXPIRE** | `7d` | JWT token expiration time | ✅ Yes |
 | **REFRESH_TOKEN_SECRET** | `SocietyManagement_Refresh_Token_Secret_2024_58374` | Secret key for refresh tokens | ✅ Yes |
 | **REFRESH_TOKEN_EXPIRE** | `30d` | Refresh token expiration time | ✅ Yes |
-| **CLIENT_URL** | `https://society-management-project-os1y.vercel.app` | Your Vercel frontend URL | ✅ Yes |
+| **CLIENT_URL** | `https://society-management-project-psi.vercel.app` | Your Vercel frontend URL | ✅ Yes |
 | **CLOUDINARY_CLOUD_NAME** | `YOUR_CLOUD_NAME_HERE` | Cloudinary cloud name | ⚠️ Optional* |
 | **CLOUDINARY_API_KEY** | `YOUR_API_KEY_HERE` | Cloudinary API key | ⚠️ Optional* |
 | **CLOUDINARY_API_SECRET** | `YOUR_API_SECRET_HERE` | Cloudinary API secret | ⚠️ Optional* |
@@ -112,7 +112,7 @@ These add extra functionality:
 
 ### MongoDB URI (Your working connection):
 ```
-mongodb+srv://patelnilay22cse_db_user:DrEoEOsGW1ErFCh4@societymanage.8q0c7bk.mongodb.net/?retryWrites=true&w=majority
+mongodb+srv://societymanage:society12@cluster0.qdhnug5.mongodb.net/societymanage?appName=Cluster0
 ```
 
 ### JWT Secrets (Pre-generated):
@@ -123,7 +123,7 @@ REFRESH_TOKEN_SECRET=SocietyManagement_Refresh_Token_Secret_2024_58374
 
 ### Frontend URL:
 ```
-CLIENT_URL=https://society-management-project-os1y.vercel.app
+CLIENT_URL=https://society-management-project-psi.vercel.app
 ```
 
 ### Razorpay (Your keys):

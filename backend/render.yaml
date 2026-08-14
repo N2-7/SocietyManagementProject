@@ -9,4 +9,20 @@ services:
         value: production
       - key: PORT
         value: 5000
+      - key: MONGODB_URI
+        value: mongodb+srv://societymanage:society12@cluster0.qdhnug5.mongodb.net/societymanage?appName=Cluster0
+      - key: JWT_SECRET
+        value: SocietyManagement_JWT_Secret_2024_Secure_Key_78492
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: REFRESH_TOKEN_SECRET
+        value: SocietyManagement_Refresh_Token_Secret_2024_58374
+      - key: REFRESH_TOKEN_EXPIRE
+        value: 30d
+      - key: CLIENT_URL
+        value: https://society-management-project-psi.vercel.app
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_SmrsBQpTanwC13
+      - key: RAZORPAY_KEY_SECRET
+        value: Ul4tO73xXscStle8PNmFIpIT
     plan: free
