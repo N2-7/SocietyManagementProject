@@ -3,6 +3,29 @@ import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/auth` : '/api/auth'
 
+// Add better error logging
+axios.interceptors.request.use(
+  (config) => {
+    console.log('API Request:', config.method?.toUpperCase(), config.url)
+    return config
+  },
+  (error) => {
+    console.error('API Request Error:', error)
+    return Promise.reject(error)
+  }
+)
+
+axios.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.config.url)
+    return response
+  },
+  (error) => {
+    console.error('API Response Error:', error.message, error.config?.url)
+    return Promise.reject(error)
+  }
+)
+
 // Async thunks
 export const login = createAsyncThunk(
   'auth/login',
