@@ -13,7 +13,7 @@ Add these environment variables to your Render backend service in the exact form
 |--------------|-------|-------------|----------|
 | **NODE_ENV** | `production` | Environment mode | ✅ Yes |
 | **PORT** | `5000` | Server port | ✅ Yes |
-| **MONGODB_URI** | `mongodb+srv://Society:Society@society.k1prnoc.mongodb.net/smart-society?appName=Society` | MongoDB connection string | ✅ Yes |
+| **MONGODB_URI** | `mongodb+srv://Society:Society@society.k1prnoc.mongodb.net/?retryWrites=true&w=majority&appName=Society` | MongoDB connection string | ✅ Yes |
 | **JWT_SECRET** | `SocietyManagement_JWT_Secret_2024_Secure_Key_78492` | Secret key for JWT tokens | ✅ Yes |
 | **JWT_EXPIRE** | `7d` | JWT token expiration time | ✅ Yes |
 | **REFRESH_TOKEN_SECRET** | `SocietyManagement_Refresh_Token_Secret_2024_58374` | Secret key for refresh tokens | ✅ Yes |
@@ -112,7 +112,7 @@ These add extra functionality:
 
 ### MongoDB URI (Updated):
 ```
-mongodb+srv://Society:Society@society.k1prnoc.mongodb.net/smart-society?appName=Society
+mongodb+srv://Society:Society@society.k1prnoc.mongodb.net/?retryWrites=true&w=majority&appName=Society
 ```
 
 ### JWT Secrets (Pre-generated):
