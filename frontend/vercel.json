@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/api/:match*",
-      "destination": "https://your-backend-url.onrender.com/api/:match*"
+      "destination": "https://societymanagementproject.onrender.com/api/:match*"
     },
     {
       "source": "/(.*)",

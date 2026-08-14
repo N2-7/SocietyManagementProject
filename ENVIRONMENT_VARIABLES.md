@@ -13,7 +13,7 @@ Add these environment variables to your Render backend service in the exact form
 |--------------|-------|-------------|----------|
 | **NODE_ENV** | `production` | Environment mode | ✅ Yes |
 | **PORT** | `5000` | Server port | ✅ Yes |
-| **MONGODB_URI** | `mongodb+srv://Society:Society@society.k1prnoc.mongodb.net/?retryWrites=true&w=majority&appName=Society` | MongoDB connection string | ✅ Yes |
+| **MONGODB_URI** | `mongodb+srv://patelnilay22cse_db_user:DrEoEOsGW1ErFCh4@societymanage.8q0c7bk.mongodb.net/?retryWrites=true&w=majority` | MongoDB connection string | ✅ Yes |
 | **JWT_SECRET** | `SocietyManagement_JWT_Secret_2024_Secure_Key_78492` | Secret key for JWT tokens | ✅ Yes |
 | **JWT_EXPIRE** | `7d` | JWT token expiration time | ✅ Yes |
 | **REFRESH_TOKEN_SECRET** | `SocietyManagement_Refresh_Token_Secret_2024_58374` | Secret key for refresh tokens | ✅ Yes |
@@ -110,9 +110,9 @@ These add extra functionality:
 
 ## 🚀 Quick Copy-Paste Values
 
-### MongoDB URI (Updated):
+### MongoDB URI (Your working connection):
 ```
-mongodb+srv://Society:Society@society.k1prnoc.mongodb.net/?retryWrites=true&w=majority&appName=Society
+mongodb+srv://patelnilay22cse_db_user:DrEoEOsGW1ErFCh4@societymanage.8q0c7bk.mongodb.net/?retryWrites=true&w=majority
 ```
 
 ### JWT Secrets (Pre-generated):

@@ -362,7 +362,7 @@ frontend/
 ### Frontend Deployment
 1. Build the frontend: `npm run build`
 2. Deploy the `dist` folder to Vercel, Netlify, or any static hosting
-3. Set the API URL in production environment
+3. Set the API URL in production environment: `VITE_API_URL=https://societymanagementproject.onrender.com`
 
 ## Security Features
 

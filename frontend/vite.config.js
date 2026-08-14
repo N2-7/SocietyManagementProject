@@ -13,4 +13,9 @@ export default defineConfig({
       },
     },
   },
+  // Production build configuration
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+  },
 })
