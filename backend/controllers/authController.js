@@ -87,10 +87,11 @@ exports.login = async (req, res) => {
       return res.status(403).json({ message: 'Your account has been blocked. Contact admin.' });
     }
 
+    // TEMPORARILY DISABLED: Skip status check for easier login
     // Check if user is pending approval (except for admin)
-    if (user.status === 'pending' && user.role !== 'admin') {
-      return res.status(403).json({ message: 'Your account is pending approval from admin.' });
-    }
+    // if (user.status === 'pending' && user.role !== 'admin') {
+    //   return res.status(403).json({ message: 'Your account is pending approval from admin.' });
+    // }
 
     // Check password
     const isPasswordMatch = await user.matchPassword(password);
