@@ -22,8 +22,8 @@ Add these environment variables to your Render backend service in the exact form
 | **CLOUDINARY_CLOUD_NAME** | `YOUR_CLOUD_NAME_HERE` | Cloudinary cloud name | ⚠️ Optional* |
 | **CLOUDINARY_API_KEY** | `YOUR_API_KEY_HERE` | Cloudinary API key | ⚠️ Optional* |
 | **CLOUDINARY_API_SECRET** | `YOUR_API_SECRET_HERE` | Cloudinary API secret | ⚠️ Optional* |
-| **RAZORPAY_KEY_ID** | `YOUR_RAZORPAY_KEY_ID_HERE` | Razorpay key ID | ⚠️ Optional* |
-| **RAZORPAY_KEY_SECRET** | `YOUR_RAZORPAY_KEY_SECRET_HERE` | Razorpay key secret | ⚠️ Optional* |
+| **RAZORPAY_KEY_ID** | `rzp_test_SmrsBQpTanwC13` | Razorpay key ID | ⚠️ Optional* |
+| **RAZORPAY_KEY_SECRET** | `Ul4tO73xXscStle8PNmFIpIT` | Razorpay key secret | ⚠️ Optional* |
 | **EMAIL_HOST** | `smtp.gmail.com` | Email host (optional) | ❌ No |
 | **EMAIL_PORT** | `587` | Email port (optional) | ❌ No |
 | **EMAIL_USER** | `your_email@gmail.com` | Email user (optional) | ❌ No |
@@ -126,10 +126,10 @@ REFRESH_TOKEN_SECRET=SocietyManagement_Refresh_Token_Secret_2024_58374
 CLIENT_URL=https://society-management-project-os1y.vercel.app
 ```
 
-### Razorpay (Add your own):
+### Razorpay (Your keys):
 ```
-RAZORPAY_KEY_ID=your_razorpay_key_id_here
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret_here
+RAZORPAY_KEY_ID=rzp_test_SmrsBQpTanwC13
+RAZORPAY_KEY_SECRET=Ul4tO73xXscStle8PNmFIpIT
 ```
 
 ### Cloudinary (Skip for now or add later):
