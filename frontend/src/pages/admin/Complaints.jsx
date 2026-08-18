@@ -64,8 +64,8 @@ const Complaints = () => {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -78,7 +78,7 @@ const Complaints = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="input md:w-40"
+            className="input"
           >
             <option value="">All Status</option>
             <option value="pending">Pending</option>
@@ -89,7 +89,7 @@ const Complaints = () => {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="input md:w-40"
+            className="input"
           >
             <option value="">All Priority</option>
             <option value="low">Low</option>
@@ -100,7 +100,7 @@ const Complaints = () => {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="input md:w-40"
+            className="input"
           >
             <option value="">All Categories</option>
             <option value="plumbing">Plumbing</option>
@@ -114,8 +114,8 @@ const Complaints = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card overflow-x-auto">
+      {/* Table - Desktop */}
+      <div className="card overflow-x-auto hidden md:block">
         <table className="table">
           <thead>
             <tr>
@@ -202,10 +202,86 @@ const Complaints = () => {
         </table>
       </div>
 
+      {/* Card View - Mobile */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        ) : complaints.length === 0 ? (
+          <div className="card text-center py-8 text-gray-500">
+            No complaints found
+          </div>
+        ) : (
+          complaints.map((complaint) => (
+            <div key={complaint._id} className="card">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 dark:text-white">{complaint.title}</p>
+                  <p className="text-sm text-gray-500">{complaint.residentId?.name} ({complaint.residentId?.flatNo})</p>
+                </div>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  complaint.status === 'pending' ? 'bg-red-100 text-red-800' :
+                  complaint.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                  complaint.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {complaint.status}
+                </span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Category:</span>
+                  <span className="text-gray-900 dark:text-white capitalize">{complaint.category}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Priority:</span>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    complaint.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                    complaint.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                    complaint.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {complaint.priority}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Created:</span>
+                  <span className="text-gray-900 dark:text-white">{new Date(complaint.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => {
+                    setSelectedComplaint(complaint)
+                    setShowModal(true)
+                  }}
+                  className="flex-1 btn btn-primary flex items-center justify-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Update
+                </button>
+                <button
+                  className="btn btn-secondary flex items-center justify-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(complaint._id)}
+                  className="btn btn-danger flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Update Modal */}
       {showModal && selectedComplaint && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold mb-4">Update Complaint</h3>
             <div className="space-y-4">
               <div>

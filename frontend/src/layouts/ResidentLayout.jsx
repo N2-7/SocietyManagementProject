@@ -62,6 +62,13 @@ const ResidentLayout = () => {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <div className="flex">
         {/* Sidebar */}
         <aside

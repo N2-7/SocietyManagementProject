@@ -70,8 +70,8 @@ const Residents = () => {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -86,7 +86,7 @@ const Residents = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="input md:w-48"
+                className="input"
               >
                 <option value="">All Status</option>
                 <option value="active">Active</option>
@@ -96,7 +96,7 @@ const Residents = () => {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="input md:w-48"
+                className="input"
               >
                 <option value="">All Types</option>
                 <option value="owner">Owner</option>
@@ -107,8 +107,8 @@ const Residents = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card overflow-x-auto">
+      {/* Table - Desktop */}
+      <div className="card overflow-x-auto hidden md:block">
         <table className="table">
           <thead>
             <tr>
@@ -211,6 +211,99 @@ const Residents = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Card View - Mobile */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="card text-center py-8 text-gray-500">
+            No residents found
+          </div>
+        ) : (
+          data.map((resident) => (
+            <div key={resident._id} className="card">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-primary-700 font-semibold">
+                      {resident.name?.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{resident.name}</p>
+                    <p className="text-sm text-gray-500">{resident.flatNo}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  resident.status === 'active' ? 'bg-green-100 text-green-800' :
+                  resident.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {resident.status}
+                </span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Email:</span>
+                  <span className="text-gray-900 dark:text-white">{resident.email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Phone:</span>
+                  <span className="text-gray-900 dark:text-white">{resident.phone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Type:</span>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    resident.residentType === 'owner' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    {resident.residentType === 'owner' ? 'Owner' : 'Tenant'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {showPending ? (
+                  <button
+                    onClick={() => handleApprove(resident._id)}
+                    className="flex-1 btn btn-primary flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-4 h-4" />
+                    Approve
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleBlock(resident._id)}
+                      className={`flex-1 btn ${
+                        resident.status === 'blocked' 
+                          ? 'bg-green-600 text-white hover:bg-green-700' 
+                          : 'btn-danger'
+                      } flex items-center justify-center gap-2`}
+                    >
+                      {resident.status === 'blocked' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                      {resident.status === 'blocked' ? 'Unblock' : 'Block'}
+                    </button>
+                    <button
+                      className="flex-1 btn btn-secondary flex items-center justify-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => handleDelete(resident._id)}
+                  className="btn btn-danger flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

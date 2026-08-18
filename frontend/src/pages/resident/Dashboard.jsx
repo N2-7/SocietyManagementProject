@@ -34,7 +34,7 @@ const ResidentDashboard = () => {
   const quickStats = [
     { icon: FileText, label: 'My Complaints', value: complaints.length, color: 'bg-blue-500' },
     { icon: AlertCircle, label: 'Pending', value: pendingComplaints, color: 'bg-red-500' },
-    { icon: DollarSign, label: 'Pending Dues', value: `₹${totalPendingAmount}`, color: 'bg-yellow-500' },
+    { icon: DollarSign, label: 'Pending Dues', value: `₹${totalPendingAmount|| 0}`, color: 'bg-yellow-500' },
     { icon: Users, label: 'My Visitors', value: visitors.length, color: 'bg-purple-500' },
   ]
 
@@ -50,7 +50,7 @@ const ResidentDashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {quickStats.map((stat, index) => {
           const Icon = stat.icon
           return (

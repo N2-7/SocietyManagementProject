@@ -64,7 +64,7 @@ const VisitorEntry = () => {
       </h1>
 
       {/* Visitor Type Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <button
           onClick={() => setVisitorType('general')}
           className={`card p-4 flex flex-col items-center gap-2 ${

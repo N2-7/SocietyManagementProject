@@ -31,8 +31,34 @@ if (process.env.NODE_ENV === 'production') {
 // Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: function (origin, callback) {
+      // Allow requests with no origin
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        process.env.CLIENT_URL || 'http://localhost:5173',
+        /https:\/\/society-management-project-.*\.vercel\.app$/,
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://localhost:5174',
+        /^http:\/\/localhost:\d+$/,
+        /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+        /^http:\/\/127\.0\.0\.1:\d+$/,
+      ];
+      
+      if (allowedOrigins.some(allowed => {
+        if (allowed instanceof RegExp) {
+          return allowed.test(origin);
+        }
+        return allowed === origin;
+      })) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -56,11 +82,18 @@ const allowedOrigins = [
   /https:\/\/society-management-project-.*\.vercel\.app$/,
   // Allow local development
   'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5174',
+  // Allow any localhost for development
+  /^http:\/\/localhost:\d+$/,
+  // Allow network IP for local testing
+  /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+  /^http:\/\/127\.0\.0\.1:\d+$/,
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.some(allowed => {
@@ -76,6 +109,8 @@ app.use(cors({
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Body parser

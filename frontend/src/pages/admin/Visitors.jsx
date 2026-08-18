@@ -36,8 +36,8 @@ const Visitors = () => {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -50,7 +50,7 @@ const Visitors = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="input md:w-48"
+            className="input"
           >
             <option value="">All Status</option>
             <option value="pending">Pending</option>
@@ -64,14 +64,14 @@ const Visitors = () => {
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="input pl-10 md:w-48"
+              className="input pl-10"
             />
           </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card overflow-x-auto">
+      {/* Table - Desktop */}
+      <div className="card overflow-x-auto hidden md:block">
         <table className="table">
           <thead>
             <tr>
@@ -133,6 +133,65 @@ const Visitors = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Card View - Mobile */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        ) : visitors.length === 0 ? (
+          <div className="card text-center py-8 text-gray-500">
+            No visitors found
+          </div>
+        ) : (
+          visitors.map((visitor) => (
+            <div key={visitor._id} className="card">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">{visitor.visitorName}</p>
+                  <p className="text-sm text-gray-500">{visitor.phone}</p>
+                </div>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  visitor.status === 'approved' ? 'bg-green-100 text-green-800' :
+                  visitor.status === 'exited' ? 'bg-gray-100 text-gray-800' :
+                  visitor.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {visitor.status}
+                </span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Flat No:</span>
+                  <span className="text-gray-900 dark:text-white">{visitor.flatNo}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Purpose:</span>
+                  <span className="text-gray-900 dark:text-white capitalize">{visitor.purpose}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Entry:</span>
+                  <span className="text-gray-900 dark:text-white">{new Date(visitor.entryTime).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Exit:</span>
+                  <span className="text-gray-900 dark:text-white">{visitor.exitTime ? new Date(visitor.exitTime).toLocaleString() : '-'}</span>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => handleDeleteVisitor(visitor._id)}
+                  className="w-full btn btn-danger flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Visitor
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

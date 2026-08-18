@@ -215,8 +215,8 @@ const Maintenance = () => {
 
       {/* Generate Bill Modal */}
       {showGenerateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Generate Maintenance Bills
@@ -330,7 +330,7 @@ const Maintenance = () => {
 
       {/* Edit Bill Modal */}
       {showEditModal && editingBill && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -469,8 +469,8 @@ const Maintenance = () => {
 
       {/* Apply Late Penalty Modal */}
       {showPenaltyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Apply Late Penalty
@@ -539,8 +539,8 @@ const Maintenance = () => {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -554,7 +554,7 @@ const Maintenance = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="input md:w-40"
+              className="input"
             >
               <option value="">All Status</option>
               <option value="pending">Pending</option>
@@ -565,7 +565,7 @@ const Maintenance = () => {
           <select
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="input md:w-40"
+            className="input"
           >
             <option value="">All Months</option>
             <option value="January">January</option>
@@ -586,7 +586,7 @@ const Maintenance = () => {
             placeholder="Year"
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="input md:w-32"
+            className="input"
           />
         </div>
       </div>
