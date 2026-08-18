@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'active', 'blocked'],
+    enum: ['pending_otp', 'pending', 'active', 'blocked'],
     default: 'pending',
   },
   profileImage: {
@@ -51,6 +51,34 @@ const userSchema = new mongoose.Schema({
   },
   refreshToken: {
     type: String,
+    select: false,
+  },
+  otp: {
+    type: String,
+    select: false,
+  },
+  otpExpiry: {
+    type: Date,
+    select: false,
+  },
+  paymentOTP: {
+    type: String,
+    select: false,
+  },
+  paymentOTPExpiry: {
+    type: Date,
+    select: false,
+  },
+  paymentMaintenanceId: {
+    type: String,
+    select: false,
+  },
+  forgotPasswordOTP: {
+    type: String,
+    select: false,
+  },
+  forgotPasswordOTPExpiry: {
+    type: Date,
     select: false,
   },
   createdAt: {

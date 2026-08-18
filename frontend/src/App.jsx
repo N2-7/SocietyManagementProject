@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
+import OTPVerification from './pages/auth/OTPVerification'
 import AdminLayout from './layouts/AdminLayout'
 import ResidentLayout from './layouts/ResidentLayout'
 import GuardLayout from './layouts/GuardLayout'
@@ -52,6 +53,7 @@ function App() {
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/verify-otp" element={<OTPVerification />} />
       
       {/* Admin Routes */}
       <Route

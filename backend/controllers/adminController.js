@@ -153,6 +153,9 @@ exports.getResidents = async (req, res) => {
 
     if (status) {
       query.status = status;
+    } else {
+      // If no status filter, exclude pending_otp users
+      query.status = { $ne: 'pending_otp' };
     }
 
     if (residentType) {
@@ -189,7 +192,10 @@ exports.getResidents = async (req, res) => {
  */
 exports.getPendingRequests = async (req, res) => {
   try {
-    const pendingUsers = await User.find({ status: 'pending', role: 'resident' })
+    const pendingUsers = await User.find({ 
+      role: 'resident',
+      status: { $in: ['pending'] } // Only show pending, exclude pending_otp
+    })
       .select('-password -refreshToken')
       .sort({ createdAt: -1 });
 

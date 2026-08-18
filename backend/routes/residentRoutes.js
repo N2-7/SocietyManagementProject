@@ -11,6 +11,8 @@ const {
   getPayments,
   createPaymentOrder,
   verifyPayment,
+  sendPaymentOTP,
+  verifyPaymentOTP,
   getNotices,
   getEvents,
   rsvpEvent,
@@ -51,6 +53,8 @@ router.get('/maintenance', getMaintenance);
 
 // Payments
 router.get('/payments', getPayments);
+router.post('/payment/send-otp', sendPaymentOTP);
+router.post('/payment/verify-otp', verifyPaymentOTP);
 router.post('/payment/create-order', createPaymentOrder);
 router.post('/payment/verify', verifyPayment);
 

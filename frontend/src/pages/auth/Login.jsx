@@ -5,9 +5,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { login } from '../../redux/slices/authSlice'
 import toast from 'react-hot-toast'
 import { Building2, Lock, LogIn } from 'lucide-react'
+import ForgotPasswordModal from '../../components/ForgotPasswordModal'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { loading } = useSelector((state) => state.auth)
@@ -40,7 +42,7 @@ const Login = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-full mb-4 overflow-hidden">
-            <img src="/logo.png" alt="MyPlace" className="w-full h-full object-cover" />
+            <img src="/h.png" alt="MyPlace" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             MyPlace
@@ -95,6 +97,26 @@ const Login = () => {
               )}
             </div>
 
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <label htmlFor="remember" className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                  Remember me
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -123,6 +145,12 @@ const Login = () => {
           Use your flat number and password to login
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </div>
   )
 }

@@ -27,8 +27,9 @@ const Signup = () => {
       const result = await dispatch(registerUser(data))
       console.log('Registration result:', result)
       if (result.meta.requestStatus === 'fulfilled') {
-        toast.success('Registration successful! Please wait for admin approval.')
-        navigate('/login')
+        toast.success('OTP sent to your email. Please verify to complete registration.')
+        // Navigate to OTP verification page with email
+        navigate('/verify-otp', { state: { email: data.email } })
       } else {
         console.error('Registration failed:', result.payload)
         toast.error(result.payload || 'Registration failed')
@@ -44,7 +45,7 @@ const Signup = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-full mb-4 overflow-hidden">
-            <img src="/logo.png" alt="MyPlace" className="w-full h-full object-cover" />
+            <img src="/h.png" alt="MyPlace" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             MyPlace

@@ -56,6 +56,59 @@ export const register = createAsyncThunk(
   }
 )
 
+export const verifyOTP = createAsyncThunk(
+  'auth/verifyOTP',
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/verify-otp`, { email, otp })
+      return response.data.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'OTP verification failed')
+    }
+  }
+)
+
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/forgot-password`, { email })
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP')
+    }
+  }
+)
+
+export const verifyForgotPasswordOTP = createAsyncThunk(
+  'auth/verifyForgotPasswordOTP',
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/verify-forgot-otp`, { email, otp })
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'OTP verification failed')
+    }
+  }
+)
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ email, otp, newPassword, confirmPassword }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/reset-password`, { 
+        email, 
+        otp, 
+        newPassword, 
+        confirmPassword 
+      })
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Password reset failed')
+    }
+  }
+)
+
 export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
@@ -136,6 +189,54 @@ const authSlice = createSlice({
         state.loading = false
       })
       .addCase(register.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+      // Verify OTP
+      .addCase(verifyOTP.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(verifyOTP.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(verifyOTP.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+      // Forgot Password
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+      // Verify Forgot Password OTP
+      .addCase(verifyForgotPasswordOTP.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(verifyForgotPasswordOTP.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(verifyForgotPasswordOTP.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+      // Reset Password
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload
       })

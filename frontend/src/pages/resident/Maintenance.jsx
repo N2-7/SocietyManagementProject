@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { getResidentMaintenance, createPaymentOrder, verifyPayment } from '../../redux/slices/residentSlice'
+import { getResidentMaintenance, createPaymentOrder, verifyPayment, sendPaymentOTP, verifyPaymentOTP } from '../../redux/slices/residentSlice'
 import { DollarSign, Calendar, Download, CreditCard, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ReceiptModal from '../../components/ReceiptModal'
+import PaymentOTPModal from '../../components/PaymentOTPModal'
 
 const Maintenance = () => {
   const dispatch = useDispatch()
   const { maintenance, loading, paymentOrder } = useSelector((state) => state.resident)
   const [processingPayment, setProcessingPayment] = useState(false)
   const [selectedBillForReceipt, setSelectedBillForReceipt] = useState(null)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [selectedBillForPayment, setSelectedBillForPayment] = useState(null)
+  const [verifyingOTP, setVerifyingOTP] = useState(false)
 
   useEffect(() => {
     dispatch(getResidentMaintenance())
@@ -17,14 +21,54 @@ const Maintenance = () => {
 
   const handlePayment = async (billId) => {
     try {
+      setSelectedBillForPayment(billId)
       setProcessingPayment(true)
       
+      // Send OTP first
+      const otpResult = await dispatch(sendPaymentOTP(billId))
+      
+      if (otpResult.error) {
+        toast.error(otpResult.error)
+        setProcessingPayment(false)
+        setSelectedBillForPayment(null)
+        return
+      }
+
+      // Show OTP modal
+      setShowOTPModal(true)
+      setProcessingPayment(false)
+    } catch (error) {
+      console.error('OTP sending error:', error)
+      toast.error('Failed to send OTP')
+      setProcessingPayment(false)
+      setSelectedBillForPayment(null)
+    }
+  }
+
+  const handleOTPVerify = async (otp) => {
+    try {
+      setVerifyingOTP(true)
+      
+      // Verify OTP
+      const verifyResult = await dispatch(verifyPaymentOTP({ otp, maintenanceId: selectedBillForPayment }))
+      
+      if (verifyResult.error) {
+        toast.error(verifyResult.error)
+        setVerifyingOTP(false)
+        return
+      }
+
+      // OTP verified successfully, close modal and proceed to payment
+      setShowOTPModal(false)
+      toast.success('OTP verified successfully')
+      
       // Create payment order
-      const orderResult = await dispatch(createPaymentOrder(billId))
+      const orderResult = await dispatch(createPaymentOrder(selectedBillForPayment))
       
       if (orderResult.error) {
         toast.error(orderResult.error)
-        setProcessingPayment(false)
+        setVerifyingOTP(false)
+        setSelectedBillForPayment(null)
         return
       }
 
@@ -44,21 +88,22 @@ const Maintenance = () => {
           order_id: orderData.orderId,
           handler: async function (response) {
             // Verify payment on backend
-            const verifyResult = await dispatch(verifyPayment({
+            const verifyPaymentResult = await dispatch(verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              maintenanceId: billId,
+              maintenanceId: selectedBillForPayment,
             }))
 
-            if (verifyResult.error) {
+            if (verifyPaymentResult.error) {
               toast.error('Payment verification failed')
             } else {
               toast.success('Payment successful!')
               // Refresh maintenance list
               dispatch(getResidentMaintenance())
             }
-            setProcessingPayment(false)
+            setVerifyingOTP(false)
+            setSelectedBillForPayment(null)
           },
           prefill: {
             name: 'Resident',
@@ -70,7 +115,8 @@ const Maintenance = () => {
           },
           modal: {
             ondismiss: function () {
-              setProcessingPayment(false)
+              setVerifyingOTP(false)
+              setSelectedBillForPayment(null)
             },
           },
         }
@@ -82,8 +128,19 @@ const Maintenance = () => {
     } catch (error) {
       console.error('Payment error:', error)
       toast.error('Payment failed')
-      setProcessingPayment(false)
+      setVerifyingOTP(false)
+      setSelectedBillForPayment(null)
     }
+  }
+
+  const handleResendOTP = async (maintenanceId) => {
+    return await dispatch(sendPaymentOTP(maintenanceId))
+  }
+
+  const handleOTPModalClose = () => {
+    setShowOTPModal(false)
+    setSelectedBillForPayment(null)
+    setVerifyingOTP(false)
   }
 
   const handleDownloadReceipt = async (billId) => {
@@ -198,7 +255,7 @@ const Maintenance = () => {
                     className="btn btn-primary flex items-center gap-2 shadow-lg shadow-primary-600/30"
                   >
                     <CreditCard className="w-4 h-4" />
-                    {processingPayment ? 'Processing...' : 'Pay Now'}
+                    {processingPayment ? 'Sending OTP...' : 'Pay Now'}
                   </button>
                 )}
               </div>
@@ -217,6 +274,16 @@ const Maintenance = () => {
           }}
         />
       )}
+
+      {/* OTP Verification Modal */}
+      <PaymentOTPModal
+        isOpen={showOTPModal}
+        onClose={handleOTPModalClose}
+        onVerify={handleOTPVerify}
+        onResendOTP={handleResendOTP}
+        maintenanceId={selectedBillForPayment}
+        loading={verifyingOTP}
+      />
     </div>
   )
 }

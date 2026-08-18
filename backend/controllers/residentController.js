@@ -11,6 +11,8 @@ const NOC = require('../models/NOC');
 const Expense = require('../models/Expense');
 const razorpay = require('../config/razorpay');
 const crypto = require('crypto');
+const { generateOTP, getOTPExpiry } = require('../utils/generateOTP');
+const sendEmail = require('../utils/sendEmail');
 
 /**
  * @desc    Get resident dashboard data
@@ -392,6 +394,300 @@ exports.verifyPayment = async (req, res) => {
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Send OTP for maintenance payment verification
+ * @route   POST /api/resident/payment/send-otp
+ * @access  Private/Resident
+ */
+exports.sendPaymentOTP = async (req, res) => {
+  try {
+    const { maintenanceId } = req.body;
+
+    // Get maintenance bill
+    const maintenance = await Maintenance.findById(maintenanceId);
+    
+    if (!maintenance) {
+      return res.status(404).json({ message: 'Maintenance bill not found' });
+    }
+
+    // Check if bill belongs to user's flat
+    if (maintenance.flatNo !== req.user.flatNo) {
+      return res.status(403).json({ message: 'Not authorized to pay this bill' });
+    }
+
+    // Check if already paid
+    if (maintenance.paymentStatus === 'paid') {
+      return res.status(400).json({ message: 'This bill is already paid' });
+    }
+
+    // Get user with email
+    const user = await User.findById(req.user.id).select('+email');
+
+    if (!user || !user.email) {
+      return res.status(400).json({ message: 'User email not found' });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpiry = getOTPExpiry();
+
+    // Store OTP in user document (temporarily for payment verification)
+    user.paymentOTP = otp;
+    user.paymentOTPExpiry = otpExpiry;
+    user.paymentMaintenanceId = maintenanceId;
+    await user.save();
+
+    // Send OTP email
+    const message = `
+      Dear ${user.name},
+
+      Your verification code for maintenance payment is: ${otp}
+
+      Payment Details:
+      - Maintenance Bill: ${maintenance.month} ${maintenance.year}
+      - Amount: ₹${maintenance.totalAmount}
+      - Flat No: ${maintenance.flatNo}
+
+      This code will expire in 5 minutes.
+
+      If you did not request this code, please ignore this email.
+
+      Best regards,
+      MyPlace Team
+    `;
+
+    const htmlMessage = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Payment Verification - MyPlace</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+          .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+          }
+          .society-name {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+          }
+          .tagline {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin: 5px 0 0;
+          }
+          .content {
+            padding: 40px 30px;
+          }
+          .welcome {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+          .message {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+          }
+          .otp-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 30px 0;
+          }
+          .otp-label {
+            color: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .otp-code {
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            margin: 0;
+          }
+          .expiry {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-top: 10px;
+          }
+          .details {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 4px;
+          }
+          .details-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+          }
+          .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+          }
+          .detail-label {
+            color: #666;
+            font-weight: 500;
+            width: 140px;
+            font-size: 14px;
+          }
+          .detail-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+          }
+          .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+          }
+          .footer-text {
+            color: #666;
+            font-size: 12px;
+            margin: 5px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 class="society-name">MyPlace</h1>
+            <p class="tagline">Smart Society Management System</p>
+          </div>
+          
+          <div class="content">
+            <h2 class="welcome">Payment Verification</h2>
+            <p class="message">Please use the following verification code to complete your maintenance payment:</p>
+            
+            <div class="otp-container">
+              <p class="otp-label">Verification Code</p>
+              <p class="otp-code">${otp}</p>
+              <p class="expiry">Expires in 5 minutes</p>
+            </div>
+            
+            <div class="details">
+              <h3 class="details-title">Payment Details</h3>
+              <div class="detail-row">
+                <span class="detail-label">Maintenance Bill:</span>
+                <span class="detail-value">${maintenance.month} ${maintenance.year}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Amount:</span>
+                <span class="detail-value">₹${maintenance.totalAmount}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Flat No:</span>
+                <span class="detail-value">${maintenance.flatNo}</span>
+              </div>
+            </div>
+            
+            <p class="message" style="margin-top: 30px;">If you did not request this code, please ignore this email.</p>
+          </div>
+          
+          <div class="footer">
+            <p class="footer-text">This is an automated message from MyPlace Smart Society Management System</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Payment Verification Code - MyPlace',
+      message,
+      html: htmlMessage,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent successfully',
+    });
+  } catch (error) {
+    console.error('Error sending payment OTP:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Verify OTP for maintenance payment
+ * @route   POST /api/resident/payment/verify-otp
+ * @access  Private/Resident
+ */
+exports.verifyPaymentOTP = async (req, res) => {
+  try {
+    const { otp, maintenanceId } = req.body;
+
+    // Get user with OTP fields
+    const user = await User.findById(req.user.id).select('+paymentOTP +paymentOTPExpiry +paymentMaintenanceId');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if OTP exists and is not expired
+    if (!user.paymentOTP || !user.paymentOTPExpiry) {
+      return res.status(400).json({ message: 'No OTP found. Please request a new OTP.' });
+    }
+
+    if (new Date() > user.paymentOTPExpiry) {
+      return res.status(400).json({ message: 'OTP has expired. Please request a new OTP.' });
+    }
+
+    // Check if maintenance ID matches
+    if (user.paymentMaintenanceId !== maintenanceId) {
+      return res.status(400).json({ message: 'Invalid maintenance ID. Please request a new OTP.' });
+    }
+
+    // Verify OTP
+    if (user.paymentOTP !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    }
+
+    // Clear OTP after successful verification
+    user.paymentOTP = undefined;
+    user.paymentOTPExpiry = undefined;
+    user.paymentMaintenanceId = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP verified successfully',
+    });
+  } catch (error) {
+    console.error('Error verifying payment OTP:', error);
     res.status(500).json({ message: error.message });
   }
 };

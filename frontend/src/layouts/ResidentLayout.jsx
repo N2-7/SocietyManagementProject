@@ -74,7 +74,7 @@ const ResidentLayout = () => {
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-600 overflow-hidden">
-                  <img src="/logo.png" alt="MyPlace" className="w-full h-full object-cover" />
+                  <img src="/h.png" alt="MyPlace" className="w-full h-full object-cover" />
                 </div>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                   MyPlace

@@ -14,7 +14,7 @@ const ResidentExpenses = () => {
     dispatch(getExpenseSummary())
     dispatch(getExpenses({ category: categoryFilter, startDate, endDate }))
   }, [dispatch, categoryFilter, startDate, endDate])
-
+  
   const categoryColors = {
     maintenance: 'bg-blue-100 text-blue-800',
     utilities: 'bg-green-100 text-green-800',
@@ -186,7 +186,7 @@ const ResidentExpenses = () => {
             ) : expenses.length === 0 ? (
               <tr>
                 <td colSpan="6" className="text-center py-8 text-gray-500">
-                  No expenses found
+                  No expenses found 
                 </td>
               </tr>
             ) : (

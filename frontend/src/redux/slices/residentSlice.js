@@ -245,6 +245,38 @@ export const verifyPayment = createAsyncThunk(
   }
 )
 
+// Send OTP for payment
+export const sendPaymentOTP = createAsyncThunk(
+  'resident/sendPaymentOTP',
+  async (maintenanceId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.post(`${API_URL}/payment/send-otp`, { maintenanceId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP')
+    }
+  }
+)
+
+// Verify OTP for payment
+export const verifyPaymentOTP = createAsyncThunk(
+  'resident/verifyPaymentOTP',
+  async ({ otp, maintenanceId }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.post(`${API_URL}/payment/verify-otp`, { otp, maintenanceId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to verify OTP')
+    }
+  }
+)
+
 // Get NOC requests
 export const getNOCRequests = createAsyncThunk(
   'resident/getNOCRequests',
@@ -418,6 +450,26 @@ const residentSlice = createSlice({
         }
       })
       .addCase(verifyPayment.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+      .addCase(sendPaymentOTP.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(sendPaymentOTP.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(sendPaymentOTP.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
+      .addCase(verifyPaymentOTP.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(verifyPaymentOTP.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(verifyPaymentOTP.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload
       })

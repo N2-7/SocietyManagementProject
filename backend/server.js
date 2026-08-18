@@ -23,7 +23,10 @@ const app = express();
 const server = http.createServer(app);
 
 // Trust proxy for rate limiting when behind reverse proxy (Render, Nginx, etc.)
-app.set('trust proxy', true);
+// Only enable in production
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 
 // Initialize Socket.io
 const io = new Server(server, {
