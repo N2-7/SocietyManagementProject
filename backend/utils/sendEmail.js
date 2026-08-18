@@ -22,16 +22,11 @@ const sendEmail = async (options) => {
     tls: {
       rejectUnauthorized: false, // Allow self-signed certificates
     },
+    // Add connection timeout
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 5000, // 5 seconds
+    socketTimeout: 10000, // 10 seconds
   });
-
-  // Verify connection configuration
-  try {
-    await transporter.verify();
-    console.log('SMTP server connection verified successfully');
-  } catch (verifyError) {
-    console.error('SMTP connection verification failed:', verifyError);
-    throw new Error(`SMTP connection failed: ${verifyError.message}`);
-  }
 
   const message = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
@@ -43,7 +38,13 @@ const sendEmail = async (options) => {
   };
 
   try {
-    const info = await transporter.sendMail(message);
+    // Add timeout to the sendMail operation
+    const info = await Promise.race([
+      transporter.sendMail(message),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email sending timeout')), 15000)
+      )
+    ]);
     console.log('Email sent successfully:', info.messageId);
     return info;
   } catch (error) {

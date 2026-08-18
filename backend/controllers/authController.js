@@ -326,33 +326,33 @@ exports.register = async (req, res) => {
       </html>
     `;
 
-    try {
-      await sendEmail({
-        email: email,
-        subject: 'Verify your email - Smart Society Management',
-        message: message,
-        html: htmlMessage,
-        attachments: attachments.length > 0 ? attachments : undefined,
+    // Send email asynchronously - don't wait for it
+    sendEmail({
+      email: email,
+      subject: 'Verify your email - Smart Society Management',
+      message: message,
+      html: htmlMessage,
+      attachments: attachments.length > 0 ? attachments : undefined,
+    })
+      .then(() => {
+        console.log('OTP email sent successfully to:', email);
+      })
+      .catch((emailError) => {
+        console.error('Error sending email:', emailError);
+        console.error('Email error details:', {
+          message: emailError.message,
+          code: emailError.code,
+          command: emailError.command,
+          response: emailError.response,
+        });
+        
+        // Delete the temporary user since email failed
+        User.findByIdAndDelete(tempUser._id).catch(err => {
+          console.error('Error deleting temp user after email failure:', err);
+        });
       });
-      console.log('OTP email sent successfully to:', email);
-    } catch (emailError) {
-      console.error('Error sending email:', emailError);
-      console.error('Email error details:', {
-        message: emailError.message,
-        code: emailError.code,
-        command: emailError.command,
-        response: emailError.response,
-      });
-      
-      // Delete the temporary user since email failed
-      await User.findByIdAndDelete(tempUser._id);
-      
-      return res.status(500).json({ 
-        message: 'Error sending verification email. Please check your email configuration and try again.',
-        error: emailError.message 
-      });
-    }
 
+    // Return response immediately without waiting for email
     res.status(200).json({
       success: true,
       message: 'OTP sent to your email. Please verify to complete registration.',
@@ -852,13 +852,20 @@ exports.forgotPassword = async (req, res) => {
       </html>
     `;
 
-    await sendEmail({
+    // Send email asynchronously - don't wait for it
+    sendEmail({
       email: user.email,
       subject: 'Password Reset Verification Code - MyPlace',
       message,
       html: htmlMessage,
       attachments,
-    });
+    })
+      .then(() => {
+        console.log('Password reset OTP sent successfully to:', user.email);
+      })
+      .catch((emailError) => {
+        console.error('Error sending password reset email:', emailError);
+      });
 
     res.status(200).json({
       success: true,

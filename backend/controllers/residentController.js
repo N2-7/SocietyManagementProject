@@ -624,12 +624,19 @@ exports.sendPaymentOTP = async (req, res) => {
       </html>
     `;
 
-    await sendEmail({
+    // Send email asynchronously - don't wait for it
+    sendEmail({
       email: user.email,
       subject: 'Payment Verification Code - MyPlace',
       message,
       html: htmlMessage,
-    });
+    })
+      .then(() => {
+        console.log('Payment OTP sent successfully to:', user.email);
+      })
+      .catch((emailError) => {
+        console.error('Error sending payment OTP email:', emailError);
+      });
 
     res.status(200).json({
       success: true,
