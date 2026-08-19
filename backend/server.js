@@ -149,6 +149,18 @@ server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
 
+// Handle server startup errors (e.g. EADDRINUSE)
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n❌ ERROR: Port ${PORT} is already in use!`);
+    console.error(`👉 Solution 1: Stop any other running node process (taskkill /F /IM node.exe)`);
+    console.error(`👉 Solution 2: Change PORT in backend/.env to another port (e.g., 5001)\n`);
+    process.exit(1);
+  } else {
+    console.error('Server error:', err);
+  }
+});
+
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.log(`Error: ${err.message}`);
