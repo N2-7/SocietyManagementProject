@@ -15,16 +15,40 @@ import {
 
 const ResidentDashboard = () => {
   const dispatch = useDispatch()
-  const { dashboard, loading } = useSelector((state) => state.resident)
+  const { dashboard, loading, error } = useSelector((state) => state.resident)
 
   useEffect(() => {
     dispatch(getResidentDashboard())
   }, [dispatch])
 
-  if (loading || !dashboard) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={() => dispatch(getResidentDashboard())}
+            className="btn btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!dashboard) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">No dashboard data available</p>
       </div>
     )
   }

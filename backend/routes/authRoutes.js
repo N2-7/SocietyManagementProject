@@ -13,6 +13,10 @@ const {
   forgotPassword,
   verifyForgotPasswordOTP,
   resetPassword,
+  setupTwoFactor,
+  verifyTwoFactor,
+  disableTwoFactor,
+  verifyTwoFactorLogin,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -24,6 +28,12 @@ router.post('/refresh', refreshToken);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-forgot-otp', verifyForgotPasswordOTP);
 router.post('/reset-password', resetPassword);
+router.post('/verify-2fa-login', verifyTwoFactorLogin);
+
+// 2FA routes (protected)
+router.post('/setup-2fa', protect, setupTwoFactor);
+router.post('/verify-2fa', protect, verifyTwoFactor);
+router.post('/disable-2fa', protect, disableTwoFactor);
 
 // Protected routes
 router.post('/logout', protect, logout);

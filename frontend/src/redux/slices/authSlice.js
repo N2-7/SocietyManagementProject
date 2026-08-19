@@ -34,6 +34,12 @@ export const login = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/login`, credentials)
+      
+      // Check if 2FA is required (fields are at top level, not inside data)
+      if (response.data.requiresTwoFactor) {
+        return { requiresTwoFactor: true, email: response.data.email }
+      }
+      
       localStorage.setItem('token', response.data.data.token)
       localStorage.setItem('refreshToken', response.data.data.refreshToken)
       localStorage.setItem('user', JSON.stringify(response.data.data.user))
@@ -109,6 +115,22 @@ export const resetPassword = createAsyncThunk(
   }
 )
 
+// 2FA verification
+export const verifyTwoFactorLogin = createAsyncThunk(
+  'auth/verifyTwoFactorLogin',
+  async ({ email, token }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/verify-2fa-login`, { email, token })
+      localStorage.setItem('token', response.data.data.token)
+      localStorage.setItem('refreshToken', response.data.data.refreshToken)
+      localStorage.setItem('user', JSON.stringify(response.data.data.user))
+      return response.data.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || '2FA verification failed')
+    }
+  }
+)
+
 export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
@@ -148,6 +170,8 @@ const initialState = {
   isAuthenticated: !!localStorage.getItem('token'),
   loading: false,
   error: null,
+  requiresTwoFactor: false,
+  twoFactorEmail: null,
 }
 
 // Auth slice
@@ -158,9 +182,15 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null
     },
+    cancelTwoFactorLogin: (state) => {
+      state.requiresTwoFactor = false
+      state.twoFactorEmail = null
+      state.error = null
+    },
     setUser: (state, action) => {
       state.user = action.payload
       state.isAuthenticated = true
+      localStorage.setItem('user', JSON.stringify(action.payload))
     },
   },
   extraReducers: (builder) => {
@@ -172,9 +202,16 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
-        state.user = action.payload.user
-        state.token = action.payload.token
-        state.isAuthenticated = true
+        if (action.payload.requiresTwoFactor) {
+          state.requiresTwoFactor = true
+          state.twoFactorEmail = action.payload.email
+        } else {
+          state.user = action.payload.user
+          state.token = action.payload.token
+          state.isAuthenticated = true
+          state.requiresTwoFactor = false
+          state.twoFactorEmail = null
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
@@ -240,6 +277,23 @@ const authSlice = createSlice({
         state.loading = false
         state.error = action.payload
       })
+      // Verify Two Factor Login
+      .addCase(verifyTwoFactorLogin.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(verifyTwoFactorLogin.fulfilled, (state, action) => {
+        state.loading = false
+        state.user = action.payload.user
+        state.token = action.payload.token
+        state.isAuthenticated = true
+        state.requiresTwoFactor = false
+        state.twoFactorEmail = null
+      })
+      .addCase(verifyTwoFactorLogin.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
       // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null
@@ -253,5 +307,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { clearError, setUser } = authSlice.actions
+export const { clearError, cancelTwoFactorLogin, setUser } = authSlice.actions
 export default authSlice.reducer

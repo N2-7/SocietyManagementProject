@@ -3,6 +3,8 @@ const { generateToken, generateRefreshToken } = require('../utils/generateToken'
 const { generateOTP, getOTPExpiry } = require('../utils/generateOTP');
 const sendEmail = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
+const { generateSecret, generateQRCode, verifyToken, generateBackupCodes } = require('../utils/twoFactorAuth');
+const bcrypt = require('bcryptjs');
 
 /**
  * @desc    Register new user (send OTP)
@@ -445,7 +447,7 @@ exports.login = async (req, res) => {
     }
 
     // Find user and include password for comparison
-    const user = await User.findOne({ flatNo }).select('+password');
+    const user = await User.findOne({ flatNo }).select('+password +twoFactorEnabled');
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -455,16 +457,20 @@ exports.login = async (req, res) => {
       return res.status(403).json({ message: 'Your account has been blocked. Contact admin.' });
     }
 
-    // TEMPORARILY DISABLED: Skip status check for easier login
-    // Check if user is pending approval (except for admin)
-    // if (user.status === 'pending' && user.role !== 'admin') {
-    //   return res.status(403).json({ message: 'Your account is pending approval from admin.' });
-    // }
-
     // Check password
     const isPasswordMatch = await user.matchPassword(password);
     if (!isPasswordMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check if 2FA is enabled
+    if (user.twoFactorEnabled) {
+      return res.status(200).json({
+        success: true,
+        message: '2FA verification required',
+        requiresTwoFactor: true,
+        email: user.email,
+      });
     }
 
     // Generate tokens
@@ -491,6 +497,7 @@ exports.login = async (req, res) => {
           residentType: user.residentType,
           status: user.status,
           profileImage: user.profileImage,
+          twoFactorEnabled: user.twoFactorEnabled,
         },
       },
     });
@@ -918,6 +925,215 @@ exports.verifyForgotPasswordOTP = async (req, res) => {
   } catch (error) {
     console.error('Error verifying forgot password OTP:', error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Setup 2FA for user
+ * @route   POST /api/auth/setup-2fa
+ * @access  Private
+ */
+exports.setupTwoFactor = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate secret
+    const secret = generateSecret(user.email, 'MyPlace Society');
+
+    // Generate QR code
+    const qrCodeDataURL = await generateQRCode(secret.otpauth_url);
+
+    // Store secret temporarily (not enabled yet until verified)
+    user.twoFactorSecret = secret.base32;
+    user.twoFactorEnabled = false;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: '2FA setup initiated. Please verify with your authenticator app.',
+      data: {
+        secret: secret.base32,
+        qrCode: qrCodeDataURL,
+        otpauthUrl: secret.otpauth_url,
+      },
+    });
+  } catch (error) {
+    console.error('Error setting up 2FA:', error);
+    res.status(500).json({ message: error.message || 'Failed to setup 2FA' });
+  }
+};
+
+/**
+ * @desc    Verify and enable 2FA
+ * @route   POST /api/auth/verify-2fa
+ * @access  Private
+ */
+exports.verifyTwoFactor = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Please provide the verification token' });
+    }
+
+    const user = await User.findById(req.user.id).select('+twoFactorSecret');
+
+    if (!user || !user.twoFactorSecret) {
+      return res.status(400).json({ message: '2FA not setup. Please setup 2FA first.' });
+    }
+
+    // Verify the token
+    const isValid = verifyToken(user.twoFactorSecret, token);
+
+    if (!isValid) {
+      return res.status(400).json({ message: 'Invalid token. Please try again.' });
+    }
+
+    // Enable 2FA and generate backup codes
+    const plainBackupCodes = generateBackupCodes(8);
+    const hashedBackupCodes = await Promise.all(
+      plainBackupCodes.map((code) => bcrypt.hash(code, 10))
+    );
+
+    user.twoFactorEnabled = true;
+    user.twoFactorBackupCodes = hashedBackupCodes;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: '2FA enabled successfully',
+      data: {
+        backupCodes: plainBackupCodes,
+      },
+    });
+  } catch (error) {
+    console.error('Error verifying 2FA:', error);
+    res.status(500).json({ message: error.message || 'Failed to verify 2FA' });
+  }
+};
+
+/**
+ * @desc    Disable 2FA
+ * @route   POST /api/auth/disable-2fa
+ * @access  Private
+ */
+exports.disableTwoFactor = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Please provide the verification token' });
+    }
+
+    const user = await User.findById(req.user.id).select('+twoFactorSecret');
+
+    if (!user || !user.twoFactorEnabled) {
+      return res.status(400).json({ message: '2FA is not enabled' });
+    }
+
+    // Verify the token before disabling
+    const isValid = verifyToken(user.twoFactorSecret, token);
+
+    if (!isValid) {
+      return res.status(400).json({ message: 'Invalid token. Cannot disable 2FA.' });
+    }
+
+    // Disable 2FA
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = undefined;
+    user.twoFactorBackupCodes = [];
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: '2FA disabled successfully',
+    });
+  } catch (error) {
+    console.error('Error disabling 2FA:', error);
+    res.status(500).json({ message: error.message || 'Failed to disable 2FA' });
+  }
+};
+
+/**
+ * @desc    Verify 2FA token during login
+ * @route   POST /api/auth/verify-2fa-login
+ * @access  Public
+ */
+exports.verifyTwoFactorLogin = async (req, res) => {
+  try {
+    const { email, token } = req.body;
+
+    if (!email || !token) {
+      return res.status(400).json({ message: 'Please provide email and token' });
+    }
+
+    const user = await User.findOne({ email }).select('+twoFactorSecret +twoFactorEnabled +twoFactorBackupCodes');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.twoFactorEnabled) {
+      return res.status(400).json({ message: '2FA is not enabled for this account' });
+    }
+
+    // Verify TOTP token first
+    let isValid = verifyToken(user.twoFactorSecret, token);
+    let usedBackupCode = false;
+
+    // If TOTP fails, try backup codes
+    if (!isValid && user.twoFactorBackupCodes?.length > 0) {
+      const normalizedToken = token.toUpperCase().replace(/\s/g, '');
+      for (let i = 0; i < user.twoFactorBackupCodes.length; i++) {
+        const match = await bcrypt.compare(normalizedToken, user.twoFactorBackupCodes[i]);
+        if (match) {
+          isValid = true;
+          usedBackupCode = true;
+          user.twoFactorBackupCodes.splice(i, 1);
+          break;
+        }
+      }
+    }
+
+    if (!isValid) {
+      return res.status(400).json({ message: 'Invalid token or backup code' });
+    }
+
+    // Generate tokens
+    const jwtToken = generateToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id, user.role);
+
+    // Save refresh token
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token: jwtToken,
+        refreshToken: refreshToken,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          flatNo: user.flatNo,
+          phone: user.phone,
+          role: user.role,
+          residentType: user.residentType,
+          status: user.status,
+          profileImage: user.profileImage,
+          twoFactorEnabled: user.twoFactorEnabled,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error verifying 2FA login:', error);
+    res.status(500).json({ message: error.message || 'Failed to verify 2FA login' });
   }
 };
 

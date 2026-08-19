@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import Login from './pages/auth/Login'
 import Signup from './pages/auth/Signup'
 import OTPVerification from './pages/auth/OTPVerification'
+import TwoFactorSetup from './pages/auth/TwoFactorSetup'
 import AdminLayout from './layouts/AdminLayout'
 import ResidentLayout from './layouts/ResidentLayout'
 import GuardLayout from './layouts/GuardLayout'
@@ -32,12 +33,27 @@ import GuardDashboard from './pages/guard/Dashboard'
 import VisitorEntry from './pages/guard/VisitorEntry'
 import GuardSecurityLogs from './pages/guard/SecurityLogs'
 
-// Protected Route Component
+// Requires login but allows access before 2FA is set up
+const AuthOnlyRoute = ({ children }) => {
+  const { isAuthenticated } = useSelector((state) => state.auth)
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
+
+// Protected Route Component — 2FA required for all dashboard routes
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated } = useSelector((state) => state.auth)
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+
+  if (!user?.twoFactorEnabled) {
+    return <Navigate to="/setup-2fa" replace />
   }
   
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
@@ -54,6 +70,11 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/verify-otp" element={<OTPVerification />} />
+      <Route path="/setup-2fa" element={
+        <AuthOnlyRoute>
+          <TwoFactorSetup />
+        </AuthOnlyRoute>
+      } />
       
       {/* Admin Routes */}
       <Route
